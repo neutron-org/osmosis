@@ -1,10 +1,13 @@
 package simulation
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	legacysimulationtype "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/osmosis-labs/osmosis/osmoutils"
 	"github.com/osmosis-labs/osmosis/v14/simulation/simtypes"
@@ -15,14 +18,41 @@ import (
 	cltypes "github.com/osmosis-labs/osmosis/v14/x/concentrated-liquidity/types"
 )
 
+var PoolCreationFee = sdk.NewInt64Coin("stake", 10_000_000)
+
 func RandomMsgCreateConcentratedPool(k clkeeper.Keeper, sim *osmosimtypes.SimCtx, ctx sdk.Context) (*clmodeltypes.MsgCreateConcentratedPool, error) {
-	// fields to randomize:
-	// - sender
-	// - denom0
-	// - denom1
-	// - tickSpacing // default 1
-	// - PrecisionFactorAtPriceOne // default -4
-	return nil, nil
+	// generate random values from -15 to 5 (accepted range: -12 to -1)
+	exponentAtPriceOne := sdk.NewInt(rand.Int63n(6+15) - 15)
+
+	// get a random sender that contains tokens including feeToksn
+	sender, senderExists := sim.RandomSimAccountWithConstraint(createPoolRestriction(k, sim, ctx))
+	if !senderExists {
+		return nil, fmt.Errorf("no sender with two different denoms & pool creation fee exists")
+	}
+
+	// generate 3 coins, use 2 to create pool and 1 for fees. "stake" - doesnot have denom metadata
+	poolCoins, ok := sim.GetRandSubsetOfKDenoms(ctx, sender, 3)
+	if !ok {
+		return nil, fmt.Errorf("provided sender with requested number of denoms does not exist")
+	}
+
+	// check if the sender has sufficient amount for fees
+	if poolCoins.Add(PoolCreationFee).IsAnyGT(sim.BankKeeper().SpendableCoins(ctx, sender.Address)) {
+		return nil, errors.New("chose an account / creation amount that didn't pass fee bar")
+	}
+
+	denom0 := poolCoins[0].Denom
+	denom1 := poolCoins[1].Denom
+	tickSpacing := uint64(rand.Int63n(10)) // random uint64 value from 0 to 100
+	precisionFactorAtPriceOne := exponentAtPriceOne
+
+	return &clmodeltypes.MsgCreateConcentratedPool{
+		Sender:                    sender.Address.String(),
+		Denom0:                    denom0,
+		Denom1:                    denom1,
+		TickSpacing:               tickSpacing,
+		PrecisionFactorAtPriceOne: precisionFactorAtPriceOne,
+	}, nil
 }
 
 func RandMsgCreatePosition(k clkeeper.Keeper, sim *osmosimtypes.SimCtx, ctx sdk.Context) (*cltypes.MsgCreatePosition, error) {
@@ -86,6 +116,16 @@ func RandMsgCollectFees(k clkeeper.Keeper, sim *osmosimtypes.SimCtx, ctx sdk.Con
 	return nil, nil
 }
 
+func createPoolRestriction(k clkeeper.Keeper, sim *simtypes.SimCtx, ctx sdk.Context) simtypes.SimAccountConstraint {
+	return func(acc legacysimulationtype.Account) bool {
+		accCoins := sim.BankKeeper().SpendableCoins(ctx, acc.Address)
+		hasTwoCoins := len(accCoins) >= 2
+		hasPoolCreationFee := accCoins.AmountOf(PoolCreationFee.Denom).GT(PoolCreationFee.Amount)
+		return hasTwoCoins && hasPoolCreationFee
+	}
+}
+
+// getRandCLPool gets a concnerated liquidity pool with its pool denoms.
 func getRandCLPool(k clkeeper.Keeper, sim *osmosimtypes.SimCtx, ctx sdk.Context) (uint64, []string, error) {
 	// get all pools
 	clPools, err := k.GetAllPools(ctx)
