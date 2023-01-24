@@ -23,6 +23,7 @@ var PoolCreationFee = sdk.NewInt64Coin("stake", 10_000_000)
 func RandomMsgCreateConcentratedPool(k clkeeper.Keeper, sim *osmosimtypes.SimCtx, ctx sdk.Context) (*clmodeltypes.MsgCreateConcentratedPool, error) {
 	// generate random values from -15 to 5 (accepted range: -12 to -1)
 	exponentAtPriceOne := sdk.NewInt(rand.Int63n(6+15) - 15)
+	authorizedTickSpacing := []uint64{1, 10, 60, 200}
 
 	// get a random sender that contains tokens including feeToksn
 	sender, senderExists := sim.RandomSimAccountWithConstraint(createPoolRestriction(k, sim, ctx))
@@ -43,7 +44,7 @@ func RandomMsgCreateConcentratedPool(k clkeeper.Keeper, sim *osmosimtypes.SimCtx
 
 	denom0 := poolCoins[0].Denom
 	denom1 := poolCoins[1].Denom
-	tickSpacing := uint64(rand.Int63n(10)) // random uint64 value from 0 to 100
+	tickSpacing := authorizedTickSpacing[rand.Intn(len(authorizedTickSpacing))]
 	precisionFactorAtPriceOne := exponentAtPriceOne
 
 	return &clmodeltypes.MsgCreateConcentratedPool{
