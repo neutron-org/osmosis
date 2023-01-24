@@ -155,7 +155,7 @@ func (am AppModule) GenerateGenesisState(simState *module.SimulationState, s *si
 func (am AppModule) Actions() []simtypes.Action {
 	return []simtypes.Action{
 		simtypes.NewMsgBasedAction("CreateConcentratedPool", am.keeper, simulation.RandomMsgCreateConcentratedPool),
-		//simtypes.NewMsgBasedAction("CreatePosition", am.keeper, simulation.RandMsgCreatePosition),
+		simtypes.NewMsgBasedAction("CreatePosition", am.keeper, simulation.RandMsgCreatePosition),
 		// simtypes.NewMsgBasedAction("WithdrawPosition", am.keeper, simulation.RandMsgWithdrawPosition),
 		// simtypes.NewMsgBasedAction("CollectFees", am.keeper, simulation.RandMsgCollectFees),
 	}

@@ -9,7 +9,6 @@ import (
 
 	legacysimulationtype "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/osmosis-labs/osmosis/osmoutils"
 	"github.com/osmosis-labs/osmosis/v14/simulation/simtypes"
 	osmosimtypes "github.com/osmosis-labs/osmosis/v14/simulation/simtypes"
 	clkeeper "github.com/osmosis-labs/osmosis/v14/x/concentrated-liquidity"
@@ -21,17 +20,17 @@ import (
 var PoolCreationFee = sdk.NewInt64Coin("stake", 10_000_000)
 
 func RandomMsgCreateConcentratedPool(k clkeeper.Keeper, sim *osmosimtypes.SimCtx, ctx sdk.Context) (*clmodeltypes.MsgCreateConcentratedPool, error) {
-	// generate random values from -15 to 5 (accepted range: -12 to -1)
-	exponentAtPriceOne := sdk.NewInt(rand.Int63n(6+15) - 15)
+	// generate random values from -13 to 1 (accepted range: -12 to -1)
+	exponentAtPriceOne := sdk.NewInt(rand.Int63n(1+13) - 13)
 	authorizedTickSpacing := []uint64{1, 10, 60, 200}
 
-	// get a random sender that contains tokens including feeToksn
+	// find an address with two or more distinct denoms in their wallet
 	sender, senderExists := sim.RandomSimAccountWithConstraint(createPoolRestriction(k, sim, ctx))
 	if !senderExists {
 		return nil, fmt.Errorf("no sender with two different denoms & pool creation fee exists")
 	}
 
-	// generate 3 coins, use 2 to create pool and 1 for fees. "stake" - doesnot have denom metadata
+	// generate 3 coins, use 2 to create pool and 1 for fees. ["stake" denom - contiains invalid metadata]
 	poolCoins, ok := sim.GetRandSubsetOfKDenoms(ctx, sender, 3)
 	if !ok {
 		return nil, fmt.Errorf("provided sender with requested number of denoms does not exist")
@@ -44,6 +43,7 @@ func RandomMsgCreateConcentratedPool(k clkeeper.Keeper, sim *osmosimtypes.SimCtx
 
 	denom0 := poolCoins[0].Denom
 	denom1 := poolCoins[1].Denom
+
 	tickSpacing := authorizedTickSpacing[rand.Intn(len(authorizedTickSpacing))]
 	precisionFactorAtPriceOne := exponentAtPriceOne
 
@@ -58,8 +58,7 @@ func RandomMsgCreateConcentratedPool(k clkeeper.Keeper, sim *osmosimtypes.SimCtx
 
 func RandMsgCreatePosition(k clkeeper.Keeper, sim *osmosimtypes.SimCtx, ctx sdk.Context) (*cltypes.MsgCreatePosition, error) {
 	// Random exponentAtPriceOne from -10 to 10
-	// TODO(Question): Do we want to make this value really extreme?
-	exponentAtPriceOne := sdk.NewInt(rand.Int63n(21) - 10)
+	exponentAtPriceOne := sdk.NewInt(rand.Int63n(1+13) - 13)
 
 	// get random pool
 	pool_id, poolDenoms, err := getRandCLPool(k, sim, ctx)
@@ -77,6 +76,13 @@ func RandMsgCreatePosition(k clkeeper.Keeper, sim *osmosimtypes.SimCtx, ctx sdk.
 	minTick, maxTick := getRandMinMaxTicks(exponentAtPriceOne)
 	lowerTick := rand.Int63n((maxTick - minTick + 1)) + (minTick) // get random lowerTick between minTick, MaxTick
 	upperTick := rand.Int63n((maxTick)-lowerTick+1) + lowerTick   // get random upperTick between lowerTick, MaxTick
+
+	fmt.Println("SISHIR: ", tokens)
+	if len(tokens) == 0 {
+		return nil, fmt.Errorf("no pool denoms tokens")
+	}
+
+	fmt.Println("SISHIR: ", tokens)
 
 	// TODO(maybe): check if these are actually pool denoms
 	// tokens that users are trying to create position for
@@ -142,9 +148,16 @@ func getRandCLPool(k clkeeper.Keeper, sim *osmosimtypes.SimCtx, ctx sdk.Context)
 	pool_id := uint64(simtypes.RandLTBound(sim, numPools) + 1)
 
 	pool := clPools[pool_id-1]
+	// fmt.Println(pool.GetToken0(), pool.GetToken1())
+	// poolCoins := pool.GetTotalPoolLiquidity(ctx)
 
-	//poolCoins := pool.GetTotalPoolLiquidity(ctx)
-	poolDenoms := osmoutils.CoinsDenoms(pool.GetTotalPoolLiquidity(ctx))
+	// r := sim.GetSeededRand("select random seed")
+	// index := r.Intn(len(poolCoins) - 1)
+	// //coinIn := poolCoins[index]
+	// poolCoins = simtypes.RemoveIndex(poolCoins, index)
+	// //coinOut := poolCoins[0]
+	// //gammDenom := types.GetPoolShareDenom(pool_id)
+	poolDenoms := []string{pool.GetToken0(), pool.GetToken1()}
 
 	return pool_id, poolDenoms, err
 }
