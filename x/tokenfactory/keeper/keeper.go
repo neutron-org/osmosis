@@ -32,7 +32,6 @@ func NewKeeper(
 	paramSpace paramtypes.Subspace,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
-	communityPoolKeeper types.CommunityPoolKeeper,
 ) Keeper {
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
@@ -42,9 +41,8 @@ func NewKeeper(
 		storeKey:   storeKey,
 		paramSpace: paramSpace,
 
-		accountKeeper:       accountKeeper,
-		bankKeeper:          bankKeeper,
-		communityPoolKeeper: communityPoolKeeper,
+		accountKeeper: accountKeeper,
+		bankKeeper:    bankKeeper,
 	}
 }
 

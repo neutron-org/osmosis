@@ -69,7 +69,7 @@ func DeconstructDenom(denom string) (creator string, subdenom string, err error)
 	return creatorAddr.String(), subdenom, nil
 }
 
-// NewTokenFactoryDenomMintCoinsRestriction creates and returns a BankMintingRestrictionFn that only allows minting of
+// NewTokenFactoryDenomMintCoinsRestriction creates and returns a MintingRestrictionFn that only allows minting of
 // valid tokenfactory denoms
 func NewTokenFactoryDenomMintCoinsRestriction() bankkeeper.BankMintingRestrictionFn {
 	return func(ctx sdk.Context, coinsToMint sdk.Coins) error {
