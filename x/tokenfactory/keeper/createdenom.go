@@ -11,11 +11,6 @@ import (
 
 // ConvertToBaseToken converts a fee amount in a whitelisted fee token to the base fee token amount
 func (k Keeper) CreateDenom(ctx sdk.Context, creatorAddr string, subdenom string) (newTokenDenom string, err error) {
-	err = k.chargeForCreateDenom(ctx, creatorAddr, subdenom)
-	if err != nil {
-		return "", err
-	}
-
 	denom, err := k.validateCreateDenom(ctx, creatorAddr, subdenom)
 	if err != nil {
 		return "", err
@@ -68,19 +63,4 @@ func (k Keeper) validateCreateDenom(ctx sdk.Context, creatorAddr string, subdeno
 	}
 
 	return denom, nil
-}
-
-func (k Keeper) chargeForCreateDenom(ctx sdk.Context, creatorAddr string, subdenom string) (err error) {
-	// Send creation fee to community pool
-	creationFee := k.GetParams(ctx).DenomCreationFee
-	accAddr, err := sdk.AccAddressFromBech32(creatorAddr)
-	if err != nil {
-		return err
-	}
-	if len(creationFee) > 0 {
-		if err := k.distrKeeper.FundCommunityPool(ctx, creationFee, accAddr); err != nil {
-			return err
-		}
-	}
-	return nil
 }
