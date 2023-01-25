@@ -3,8 +3,9 @@ module github.com/osmosis-labs/osmosis/v10
 go 1.18
 
 require (
-	github.com/CosmWasm/wasmd v0.24.0
-	github.com/cosmos/cosmos-sdk v0.45.6
+	github.com/CosmWasm/wasmd v0.30.0
+	github.com/cosmos/cosmos-proto v1.0.0-alpha8
+	github.com/cosmos/cosmos-sdk v0.46.8
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/iavl v0.17.3
 	github.com/cosmos/ibc-go/v3 v3.0.0
@@ -31,7 +32,31 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-require github.com/cosmos/ibc-go/v2 v2.0.3 // indirect
+require (
+	github.com/Abirdcfly/dupword v0.0.7 // indirect
+	github.com/Djarvur/go-err113 v0.1.0 // indirect
+	github.com/alingse/asasalint v0.0.11 // indirect
+	github.com/benbjohnson/clock v1.3.0 // indirect
+	github.com/cosmos/gogoproto v1.4.3 // indirect
+	github.com/cosmos/iavl v0.19.4 // indirect
+	github.com/creachadair/taskgroup v0.3.2 // indirect
+	github.com/curioswitch/go-reassign v0.2.0 // indirect
+	github.com/docker/distribution v2.8.1+incompatible // indirect
+	github.com/felixge/httpsnoop v1.0.2 // indirect
+	github.com/google/btree v1.1.2 // indirect
+	github.com/kkHAIKE/contextcheck v1.1.3 // indirect
+	github.com/maratori/testableexamples v1.0.0 // indirect
+	github.com/nxadm/tail v1.4.8 // indirect
+	github.com/regen-network/cosmos-proto v0.3.1 // indirect
+	github.com/sashamelentyev/interfacebloat v1.1.0 // indirect
+	github.com/sashamelentyev/usestdlibvars v1.20.0 // indirect
+	github.com/sivchari/nosnakecase v1.7.0 // indirect
+	github.com/timonwong/loggercheck v0.9.3 // indirect
+	github.com/zimmski/go-mutesting v0.0.0-20210610104036-6d9217011a00 // indirect
+	go.uber.org/atomic v1.10.0 // indirect
+	go.uber.org/goleak v1.1.12 // indirect
+	go.uber.org/zap v1.23.0 // indirect
+)
 
 require (
 	4d63.com/gochecknoglobals v0.1.0 // indirect
@@ -249,20 +274,20 @@ require (
 	github.com/zondax/hid v0.9.0 // indirect
 	gitlab.com/bosi/decorder v0.2.1 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
-	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
-	golang.org/x/exp/typeparams v0.0.0-20220218215828-6cf2b201936e // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
-	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2 // indirect
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
-	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171 // indirect
-	golang.org/x/text v0.3.7 // indirect
-	golang.org/x/tools v0.1.11-0.20220316014157-77aa08bb151a // indirect
-	golang.org/x/xerrors v0.0.0-20220517211312-f3a8303e98df // indirect
-	gopkg.in/ini.v1 v1.66.4 // indirect
-	gopkg.in/yaml.v3 v3.0.0 // indirect
-	honnef.co/go/tools v0.3.1 // indirect
-	mvdan.cc/gofumpt v0.3.1 // indirect
+	go.opencensus.io v0.24.0 // indirect
+	golang.org/x/crypto v0.1.0 // indirect
+	golang.org/x/exp/typeparams v0.0.0-20220827204233-334a2380cb91 // indirect
+	golang.org/x/mod v0.6.0 // indirect
+	golang.org/x/net v0.4.0 // indirect
+	golang.org/x/sync v0.1.0 // indirect
+	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/term v0.3.0 // indirect
+	golang.org/x/text v0.5.0 // indirect
+	golang.org/x/tools v0.2.0 // indirect
+	google.golang.org/protobuf v1.28.2-0.20220831092852-f930b1dc76e8 // indirect
+	gopkg.in/ini.v1 v1.67.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1
+	honnef.co/go/tools v0.3.3 // indirect
 	mvdan.cc/interfacer v0.0.0-20180901003855-c20040233aed // indirect
 	mvdan.cc/lint v0.0.0-20170908181259-adc824a0674b // indirect
 	mvdan.cc/unparam v0.0.0-20211214103731-d0ef000c54e5 // indirect
