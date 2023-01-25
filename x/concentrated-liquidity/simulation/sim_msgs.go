@@ -57,8 +57,10 @@ func RandomMsgCreateConcentratedPool(k clkeeper.Keeper, sim *osmosimtypes.SimCtx
 }
 
 func RandMsgCreatePosition(k clkeeper.Keeper, sim *osmosimtypes.SimCtx, ctx sdk.Context) (*cltypes.MsgCreatePosition, error) {
-	// Random exponentAtPriceOne from -10 to 10
-	exponentAtPriceOne := sdk.NewInt(rand.Int63n(1+13) - 13)
+	var tokenMinAmount0, tokenMinAmount1 int64
+	var lowerTick, upperTick int64
+	// generate random values from -12 to -1
+	exponentAtPriceOne := sdk.NewInt(rand.Int63n(13) - 12)
 
 	// get random pool
 	pool_id, poolDenoms, err := getRandCLPool(k, sim, ctx)
@@ -66,37 +68,60 @@ func RandMsgCreatePosition(k clkeeper.Keeper, sim *osmosimtypes.SimCtx, ctx sdk.
 		return nil, err
 	}
 
+	// check if the pool exists
+	poolI, err := k.GetPool(ctx, pool_id)
+	if err != nil {
+		return nil, fmt.Errorf("Pool not found for id %d", pool_id)
+	}
+	concentratedPool := poolI.(cltypes.ConcentratedPoolExtension)
+	tickSpacing := concentratedPool.GetTickSpacing()
+
 	// get address that has all denoms from the randomly selected pool
 	sender, tokens, senderExists := sim.SelAddrWithDenoms(ctx, poolDenoms)
 	if !senderExists {
 		return nil, fmt.Errorf("no sender with denoms %s exists", poolDenoms)
 	}
 
-	// Randomize tick values from minTick to maxTick
-	minTick, maxTick := getRandMinMaxTicks(exponentAtPriceOne)
-	lowerTick := rand.Int63n((maxTick - minTick + 1)) + (minTick) // get random lowerTick between minTick, MaxTick
-	upperTick := rand.Int63n((maxTick)-lowerTick+1) + lowerTick   // get random upperTick between lowerTick, MaxTick
-
-	fmt.Println("SISHIR: ", tokens)
 	if len(tokens) == 0 {
 		return nil, fmt.Errorf("no pool denoms tokens")
 	}
 
-	fmt.Println("SISHIR: ", tokens)
-
-	// TODO(maybe): check if these are actually pool denoms
 	// tokens that users are trying to create position for
 	tokenDesired0 := tokens[0]
 	tokenDesired1 := tokens[1]
 
+	// Randomize tick values from minTick to maxTick
+	minTick, maxTick := getRandMinMaxTicks(exponentAtPriceOne)
+
+	lower_tick_disivisble := ((maxTick - minTick) / int64(tickSpacing)) + 1 // get random value between minTick, maxTick that is divisible by TickSpacing
+	if lower_tick_disivisble < 1 {
+		return nil, fmt.Errorf("lower tick divisible by tickspacing not found")
+	}
+	lowerTick = rand.Int63n(lower_tick_disivisble)*int64(tickSpacing) + minTick //  get random value between minTick, lowerTick that is divisible by TickSpacing
+
+	upper_tick_disivisble := ((maxTick - lowerTick) / int64(tickSpacing)) + 1
+	if upper_tick_disivisble < 1 {
+		return nil, fmt.Errorf("upper tick divisible by tickspacing not found")
+	}
+	upperTick = rand.Int63n(upper_tick_disivisble)*int64(tickSpacing) + lowerTick
+
+	fmt.Println("EXPONENTATPRICEONE: ", exponentAtPriceOne)
+	fmt.Println("MIN MAX TICKS: ", minTick, maxTick)
+	fmt.Println("LOWER UPPER TICKS: ", lowerTick, upperTick)
+	fmt.Println("TICKSS SPACING: ", tickSpacing)
+
 	// get pool actual amounts
 	actualAmount0, actualAmount1, err := getPoolActualAmounts(k, ctx, pool_id, lowerTick, upperTick, exponentAtPriceOne, tokenDesired0, tokenDesired1)
 
-	// generate random tokenMinAmount0 < actualAmount0
-	tokenMinAmount0 := rand.Int63n((actualAmount0.Int64()))
-
-	// generate random tokenMinAmount1 < actualAmount1
-	tokenMinAmount1 := rand.Int63n((actualAmount1.Int64()))
+	if actualAmount0.Equal(sdk.NewInt(0)) || actualAmount1.Equal(sdk.NewInt(0)) {
+		tokenMinAmount0 = 0
+		tokenMinAmount1 = 0
+	} else {
+		// generate random tokenMinAmount0 < actualAmount0
+		tokenMinAmount0 = rand.Int63n((actualAmount0.Int64()))
+		// generate random tokenMinAmount1 < actualAmount1
+		tokenMinAmount1 = rand.Int63n((actualAmount1.Int64()))
+	}
 
 	return &cltypes.MsgCreatePosition{
 		PoolId:          pool_id,
@@ -146,17 +171,16 @@ func getRandCLPool(k clkeeper.Keeper, sim *osmosimtypes.SimCtx, ctx sdk.Context)
 	}
 
 	pool_id := uint64(simtypes.RandLTBound(sim, numPools) + 1)
-
 	pool := clPools[pool_id-1]
-	// fmt.Println(pool.GetToken0(), pool.GetToken1())
+
 	// poolCoins := pool.GetTotalPoolLiquidity(ctx)
 
 	// r := sim.GetSeededRand("select random seed")
 	// index := r.Intn(len(poolCoins) - 1)
 	// //coinIn := poolCoins[index]
 	// poolCoins = simtypes.RemoveIndex(poolCoins, index)
-	// //coinOut := poolCoins[0]
-	// //gammDenom := types.GetPoolShareDenom(pool_id)
+	//coinOut := poolCoins[0]
+	//gammDenom := types.GetPoolShareDenom(pool_id)
 	poolDenoms := []string{pool.GetToken0(), pool.GetToken1()}
 
 	return pool_id, poolDenoms, err
